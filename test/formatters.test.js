@@ -4,6 +4,8 @@ import {
   formatForecast,
   formatBusArrivals,
   formatPlaces,
+  resolveOrigin,
+  CT_HUB_2,
   haversineMetres,
 } from "../src/tools.js";
 
@@ -97,4 +99,22 @@ test("formatPlaces passes through whether each place is open now", () => {
     formatPlaces(places, ctHub2).map((p) => [p.name, p.open_now]),
     [["Open", true], ["Closed", false], ["No hours", null]],
   );
+});
+
+test("resolveOrigin uses the browser location when it is a valid coordinate", () => {
+  const lavenderMrt = { latitude: 1.3073, longitude: 103.8631 };
+  assert.deepEqual(resolveOrigin(lavenderMrt), lavenderMrt);
+});
+
+test("resolveOrigin falls back to CT Hub 2 for missing or bad locations", () => {
+  for (const location of [
+    undefined,
+    null,
+    {},
+    { latitude: "1.3", longitude: "103.8" },
+    { latitude: 91, longitude: 103.8 },
+    { latitude: 1.3, longitude: NaN },
+  ]) {
+    assert.equal(resolveOrigin(location), CT_HUB_2, JSON.stringify(location));
+  }
 });

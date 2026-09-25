@@ -6,8 +6,22 @@
  * The format functions are the ones covered by tests.
  */
 
-// CT Hub 2, 114 Lavender Street.
+// CT Hub 2, 114 Lavender Street. Used when the browser does not share a location.
 export const CT_HUB_2 = { latitude: 1.3115, longitude: 103.8636 };
+
+/**
+ * Turn the location sent by the browser into a search origin.
+ * Falls back to CT Hub 2 when it is missing or not a valid coordinate.
+ */
+export function resolveOrigin(location) {
+  const { latitude, longitude } = location ?? {};
+  const valid =
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude) &&
+    Math.abs(latitude) <= 90 &&
+    Math.abs(longitude) <= 180;
+  return valid ? { latitude, longitude } : CT_HUB_2;
+}
 
 const SEARCH_RADIUS_METRES = 800;
 const MAX_PLACES = 10;
@@ -28,7 +42,7 @@ export const toolDefinitions = [
     function: {
       name: "find_lunch_places",
       description:
-        "Search for places to eat near CT Hub 2. Returns name, rating, distance and whether it is open now.",
+        "Search for places to eat near the user. Returns name, rating, distance from the user and whether it is open now.",
       parameters: {
         type: "object",
         properties: {
@@ -82,10 +96,10 @@ export const toolDefinitions = [
 /**
  * Run one tool call requested by the model and return the result as a string.
  */
-export async function executeTool(name, args, env) {
+export async function executeTool(name, args, env, origin = CT_HUB_2) {
   switch (name) {
     case "find_lunch_places":
-      return JSON.stringify(await findLunchPlaces(args, env));
+      return JSON.stringify(await findLunchPlaces(args, env, origin));
     case "get_rain_forecast":
       return JSON.stringify(await getRainForecast());
     case "get_bus_arrivals":
@@ -99,8 +113,7 @@ export async function executeTool(name, args, env) {
 // find_lunch_places
 // ---------------------------------------------------------------------------
 
-async function findLunchPlaces({ query, open_now = false }, env) {
-  const centre = CT_HUB_2;
+async function findLunchPlaces({ query, open_now = false }, env, centre) {
 
   const body = {
     textQuery: query,

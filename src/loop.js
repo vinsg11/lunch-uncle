@@ -1,5 +1,10 @@
 import { buildSystemPrompt } from "./prompt.js";
-import { toolDefinitions, executeTool } from "./tools.js";
+import {
+  toolDefinitions,
+  executeTool,
+  resolveOrigin,
+  CT_HUB_2,
+} from "./tools.js";
 
 // OpenCode Go (OpenAI-compatible) base URL and model.
 const LLM_BASE_URL = "https://opencode.ai/zen/go/v1";
@@ -14,15 +19,17 @@ const FALLBACK_REPLY = "Just go Berseh Food Centre lah.";
  * Run the agentic loop for one user turn and return Uncle's reply.
  *
  * history is the prior conversation as OpenAI-style {role, content} messages.
+ * location is the {latitude, longitude} the browser shared, if any.
  */
-export async function runLoop(history, message, env) {
+export async function runLoop(history, message, env, location) {
   // If the Places key is missing, Uncle cannot search, so give a safe answer.
   if (!env.GOOGLE_PLACES_API_KEY) {
     return FALLBACK_REPLY;
   }
 
+  const origin = resolveOrigin(location);
   const messages = [
-    { role: "system", content: buildSystemPrompt() },
+    { role: "system", content: buildSystemPrompt(origin !== CT_HUB_2) },
     ...history,
     { role: "user", content: message },
   ];
@@ -44,7 +51,7 @@ export async function runLoop(history, message, env) {
     for (const call of toolCalls) {
       const args = parseArgs(call.function.arguments);
       console.log(`round ${round}: ${call.function.name}`, args);
-      const result = await executeTool(call.function.name, args, env);
+      const result = await executeTool(call.function.name, args, env, origin);
       messages.push({
         role: "tool",
         tool_call_id: call.id,
