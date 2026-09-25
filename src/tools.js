@@ -7,7 +7,7 @@
  */
 
 // CT Hub 2, 114 Lavender Street.
-export const CT_HUB_2 = { latitude: 1.3115, longitude: 103.8615 };
+export const CT_HUB_2 = { latitude: 1.3115, longitude: 103.8636 };
 
 const SEARCH_RADIUS_METRES = 800;
 const MAX_PLACES = 10;

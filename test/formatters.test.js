@@ -51,14 +51,14 @@ test("formatBusArrivals converts durations to whole minutes", () => {
 });
 
 test("haversineMetres measures CT Hub 2 to Lavender MRT at under 600 m", () => {
-  const ctHub2 = { latitude: 1.3115, longitude: 103.8615 };
+  const ctHub2 = { latitude: 1.3115, longitude: 103.8636 };
   const lavenderMrt = { latitude: 1.3073, longitude: 103.8631 };
   const distance = haversineMetres(ctHub2, lavenderMrt);
   assert.ok(distance > 400 && distance < 550, `got ${distance}`);
 });
 
 test("formatPlaces drops far places and sorts nearest first", () => {
-  const ctHub2 = { latitude: 1.3115, longitude: 103.8615 };
+  const ctHub2 = { latitude: 1.3115, longitude: 103.8636 };
   const places = [
     {
       displayName: { text: "Lavender MRT stall" },
@@ -85,7 +85,7 @@ test("formatPlaces drops far places and sorts nearest first", () => {
 });
 
 test("formatPlaces passes through whether each place is open now", () => {
-  const ctHub2 = { latitude: 1.3115, longitude: 103.8615 };
+  const ctHub2 = { latitude: 1.3115, longitude: 103.8636 };
   const here = { latitude: 1.3116, longitude: 103.8616 };
   const places = [
     { displayName: { text: "Open" }, location: here, currentOpeningHours: { openNow: true } },
