@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   formatForecast,
   formatBusArrivals,
+  formatPlaces,
   haversineMetres,
 } from "../src/tools.js";
 
@@ -54,4 +55,46 @@ test("haversineMetres measures CT Hub 2 to Lavender MRT at under 600 m", () => {
   const lavenderMrt = { latitude: 1.3073, longitude: 103.8631 };
   const distance = haversineMetres(ctHub2, lavenderMrt);
   assert.ok(distance > 400 && distance < 550, `got ${distance}`);
+});
+
+test("formatPlaces drops far places and sorts nearest first", () => {
+  const ctHub2 = { latitude: 1.3115, longitude: 103.8615 };
+  const places = [
+    {
+      displayName: { text: "Lavender MRT stall" },
+      rating: 4.1,
+      location: { latitude: 1.3073, longitude: 103.8631 },
+    },
+    {
+      displayName: { text: "Bedok stall" },
+      rating: 4.8,
+      location: { latitude: 1.3236, longitude: 103.9273 },
+    },
+    {
+      displayName: { text: "Next door" },
+      location: { latitude: 1.3116, longitude: 103.8616 },
+    },
+  ];
+
+  const result = formatPlaces(places, ctHub2, 800);
+  assert.deepEqual(
+    result.map((p) => p.name),
+    ["Next door", "Lavender MRT stall"],
+  );
+  assert.equal(result[0].rating, null);
+});
+
+test("formatPlaces passes through whether each place is open now", () => {
+  const ctHub2 = { latitude: 1.3115, longitude: 103.8615 };
+  const here = { latitude: 1.3116, longitude: 103.8616 };
+  const places = [
+    { displayName: { text: "Open" }, location: here, currentOpeningHours: { openNow: true } },
+    { displayName: { text: "Closed" }, location: here, currentOpeningHours: { openNow: false } },
+    { displayName: { text: "No hours" }, location: here },
+  ];
+
+  assert.deepEqual(
+    formatPlaces(places, ctHub2).map((p) => [p.name, p.open_now]),
+    [["Open", true], ["Closed", false], ["No hours", null]],
+  );
 });
